@@ -7,7 +7,8 @@ import re
 api_service_name = "youtube"
 api_version = "v3"
 api_key = os.environ["YOUTUBE_DATA_API_KEY"]
-list_params = ["snippet","contentDetails","statistics"]
+video_list_params = ["snippet","contentDetails","statistics"]
+channel_list_params = ["statistics","snippet"]
 # Get credentials and create an API client
 youtube = googleapiclient.discovery.build(
     api_service_name, api_version, developerKey=api_key
@@ -22,20 +23,22 @@ data = {
     "tags": [], # snippet.tags
     "default_language": [], # snippet.defaultLanguage
     "duration": [], # contentDetails.duration
+    "upload_time": [], # snippet.publishedAt
     "views": [], # statistics.viewCount, TARGET
     "subscriber_count": [], # from channel statistics
     "channel_views": [], # from channel statistics
     "video_count": [], # from channel statistics
+    "created_channel_at": [] # from channel statistics
 }
 
 file = open("video_ids_list.txt", "r")
-video_ids_list = file.read().split(",")
+video_ids_list = file.read().split(",")[0:100]
 random.shuffle(video_ids_list)
 file.close()
 
 for i in range(len(video_ids_list)//50 + 1):
     batch = ",".join(video_ids_list[i*50:(i+1)*50])
-    request_vid = youtube.videos().list(part=",".join(list_params), id=batch)
+    request_vid = youtube.videos().list(part=",".join(video_list_params), id=batch)
     response_vid = request_vid.execute()
     req_channel_data_list = []
     
@@ -50,9 +53,12 @@ for i in range(len(video_ids_list)//50 + 1):
         data["tags"].append(", ".join(item["snippet"].get("tags", [])))
         data["default_language"].append(item["snippet"].get("defaultLanguage", ""))
         data["duration"].append(item["contentDetails"].get("duration", ""))
+        data["upload_time"].append(item["snippet"].get("publishedAt", ""))
         data["views"].append(item["statistics"].get("viewCount", 0))
 
-    request_channel = youtube.channels().list(part="statistics", id=",".join(req_channel_data_list))
+    if len(req_channel_data_list) == 0:
+        continue
+    request_channel = youtube.channels().list(part=",".join(channel_list_params), id=",".join(req_channel_data_list))
     response_channel = request_channel.execute()
     for channel_id in req_channel_data_list:
         for item in response_channel["items"]:
@@ -60,6 +66,7 @@ for i in range(len(video_ids_list)//50 + 1):
                 data["subscriber_count"].append(item["statistics"].get("subscriberCount", 0))
                 data["channel_views"].append(item["statistics"].get("viewCount", 0))
                 data["video_count"].append(item["statistics"].get("videoCount", 0))
+                data["created_channel_at"].append(item["snippet"].get("publishedAt", ""))
     print("Completed batch", i+1, "of",
         len(video_ids_list)//50 + 1, "----",
         len(data["video_id"]),

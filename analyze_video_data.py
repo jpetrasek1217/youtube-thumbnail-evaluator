@@ -42,15 +42,14 @@ def duration_to_seconds(s):
 # Column indices preserved from your original code:
 # 2 = title
 # 3 = thumbnail_url
-# 5 = language
-# 6 = duration
-# 7 = made_for_kids
+# 6 = language
+# 7 = duration
 # 8 = views
 
 title_lengths = df.iloc[:, 2].astype(str).apply(len)
-languages = df.iloc[:, 5].astype(str).str.partition("-")[0]
+languages = df.iloc[:, 6].astype(str).str.partition("-")[0]
 language_counts = languages.value_counts()
-length_in_seconds = df.iloc[:, 6].apply(duration_to_seconds)
+length_in_seconds = df.iloc[:, 7].apply(duration_to_seconds)
 views = pd.to_numeric(df.iloc[:, 8], errors="coerce").fillna(1).astype(int).clip(lower=1)
 thumbnail_urls = df.iloc[:, 3].astype(str)
 
@@ -110,7 +109,7 @@ axes[0, 0].grid(True, alpha=0.5)
 # -------------------------
 # 2. Language bar chart
 # -------------------------
-top_n = 50
+top_n = 30
 top_languages = language_counts.head(top_n)
 axes[0, 1].bar(top_languages.index, top_languages.values)
 axes[0, 1].set_xlabel("Language")
@@ -129,6 +128,7 @@ log_bins_length = np.logspace(
 )
 
 axes[1, 0].hist(length_in_seconds, bins=log_bins_length)
+# axes[1, 0].hist(length_in_seconds, bins=500)
 axes[1, 0].set_xscale("log")
 axes[1, 0].set_xlabel("Video Length (seconds) [log scale]")
 axes[1, 0].set_ylabel("Number of Videos")
@@ -146,6 +146,7 @@ log_bins_views = np.logspace(
 )
 
 axes[1, 1].hist(views_nonzero, bins=log_bins_views)
+# axes[1, 1].hist(views_nonzero, bins=500)
 axes[1, 1].set_xscale("log")
 axes[1, 1].set_xlabel("Views [log scale]")
 axes[1, 1].set_ylabel("Number of Videos")
