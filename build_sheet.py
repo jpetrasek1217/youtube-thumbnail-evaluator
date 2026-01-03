@@ -32,7 +32,7 @@ data = {
 }
 
 file = open("video_ids_list.txt", "r")
-video_ids_list = file.read().split(",")[0:100]
+video_ids_list = file.read().split(",")
 random.shuffle(video_ids_list)
 file.close()
 

@@ -7,12 +7,13 @@ from PIL import Image
 import torch
 from torchvision import transforms
 import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from itertools import islice
 
 # -------------------------
 # Load CSV into DataFrame
 # -------------------------
 df = pd.read_csv("video_data.csv", encoding="utf-8")
+df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 # -------------------------
 # Column names (adjust if needed)
@@ -29,7 +30,6 @@ CREATED_CHANNEL_AT = "created_channel_at"
 THUMBNAIL_URL_MEDIUM = "thumbnail_url_medium"
 TITLE = "title"
 DURATION = "duration"
-IS_SHORT = "is_short"
 TITLE_LENGTH = "title_length"
 VID_HOUR_OF_DAY = "vid_hour_of_day"
 VID_DAY_OF_WEEK = "vid_day_of_week"
@@ -127,7 +127,6 @@ df = df[df[DEFAULT_LANGUAGE].str.contains("en", na=False)]
 df[DURATION] = df[DURATION].apply(duration_to_seconds)
 df = insert_publish_time_features(df, UPLOAD_TIME)
 df = insert_publish_time_features(df, CREATED_CHANNEL_AT, 16)
-df.insert(7, IS_SHORT, (df[DURATION] < 60).astype(int))
 df[TITLE_LENGTH] = df[TITLE].astype(str).apply(len)
 
 # -------------------------
@@ -158,7 +157,6 @@ for col in log_cols:
 # duration_sec, title_length, vid_hour_of_day, vid_day_of_week, video_count, channel_age_years
 norm_cols = [
     DURATION,
-    IS_SHORT,
     TITLE_LENGTH,
     VID_HOUR_OF_DAY,
     VID_DAY_OF_WEEK,
@@ -182,48 +180,68 @@ other_cols = [col for col in df.columns if col not in feature_cols]
 # Reorder dataframe: other columns first, then norm_cols
 df = df[other_cols + feature_cols]
 
+df[VIEWS] = pd.cut(
+    df[VIEWS],
+    bins=8,
+    labels=False,
+    include_lowest=True
+)
+
 # -------------------------
 # Save cleaned data
 # -------------------------
+print(f"Saving {len(df.values)} rows of cleaned data to video_data_cleaned.csv")
 df.to_csv("video_data_cleaned.csv", index=False, encoding="utf-8")
 
-# Define your transform
+# Image transform (adjust size if needed)
 transform = transforms.Compose([
-    transforms.Resize(224),           # resize shorter side to 224
-    transforms.CenterCrop(224),       # crop to 224x224
+    transforms.Resize(128),
+    transforms.CenterCrop(128),
     transforms.ToTensor()
 ])
 
-# Function to download and convert one image
 def download_image(url):
     try:
         response = requests.get(url, timeout=5)
         img = Image.open(BytesIO(response.content)).convert("RGB")
         return transform(img)
     except Exception as e:
-        print(f"Failed to process {url}: {e}")
-        # Return a dummy tensor in case of failure
-        return torch.zeros(3, 224, 224)
+        print(f"Failed: {url} | {e}")
+        return torch.zeros(3, 128, 128)
 
-# Function to process all images and save tensors
-def process_column(urls, save_path="thumbnail_tensors.pt", max_workers=8):
-    if os.path.exists(save_path):
-        print(f"Loading tensors from {save_path}...")
-        data = torch.load(save_path)
-        return data
+def chunked(iterable, size):
+    it = iter(iterable)
+    while True:
+        chunk = list(islice(it, size))
+        if not chunk:
+            break
+        yield chunk
 
-    print("Downloading and processing images...")
-    tensors = []
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(download_image, url): url for url in urls}
-        for future in as_completed(futures):
-            tensors.append(future.result())
+def process_thumbnails_batched(
+    urls,
+    save_dir="thumbnail_batches",
+    batch_size=256
+):
+    os.makedirs(save_dir, exist_ok=True)
 
-    # Stack tensors into one tensor and save
-    tensors_stack = torch.stack(tensors)
-    torch.save(tensors_stack, save_path)
-    print(f"Tensors saved to {save_path}")
-    return tensors_stack
+    total = len(urls)
+    processed = 0
 
-thumbnail_tensors = process_column(df[THUMBNAIL_URL_MEDIUM].tolist())
-print(thumbnail_tensors.shape)  # [num_images, 3, 224, 224]
+    for i, batch in enumerate(chunked(urls, batch_size)):
+        save_path = os.path.join(save_dir, f"batch_{i:04d}.pt")
+
+        if os.path.exists(save_path):
+            processed += len(batch)
+            continue
+
+        tensors = []
+        for url in batch:
+            tensors.append(download_image(url))
+
+        torch.save(torch.stack(tensors), save_path)
+        processed += len(batch)
+
+        print(f"Saved batch {i} | {processed}/{total} ({processed/total:.1%})")
+
+# Run thumbnail processing
+process_thumbnails_batched(df[THUMBNAIL_URL_DEFAULT].tolist())
