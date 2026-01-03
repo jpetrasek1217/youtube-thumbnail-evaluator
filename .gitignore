@@ -6,4 +6,6 @@ youtube_video_evaluator_fold_4.pth
 output_thumbnail_evaluator.txt
 thumbnail_batches/
 __pycache__/
+video_data_cleaned.csv
+video_data.csv
 .vscode/
