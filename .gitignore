@@ -8,4 +8,5 @@ thumbnail_batches/
 __pycache__/
 video_data_cleaned.csv
 video_data.csv
+video_ids_list.txt
 .vscode/
