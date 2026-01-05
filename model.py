@@ -3,16 +3,13 @@ import torch.nn as nn
 import numpy as np
 from typing import Dict
 from hybrid_nn import HybridEvaluator
-from huggingface_hub import hf_hub_download
 
 
-def load_model(model_path: str = None) -> nn.Module:
+def load_model(model_path: str = "/app/model_cache/model.pth") -> nn.Module:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    model_path = hf_hub_download(
-        repo_id="josephpetrasek/youtube-video-evaluator",
-        filename="model.pth"
-    )
+    # If model_path is None, fallback to local cache
+    model_path = model_path or "/app/model_cache/model.pth"
     
     model = HybridEvaluator(num_numeric_features=6, num_classes=8, device=device)
     model.load_state_dict(torch.load(model_path, map_location=device))
