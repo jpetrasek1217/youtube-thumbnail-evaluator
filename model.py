@@ -10,11 +10,13 @@ from huggingface_hub import hf_hub_download
 def load_model(model_path: str = "/app/model_cache/model.pth") -> nn.Module:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
+    print(os.path.isfile(model_path))
     if not os.path.isfile(model_path):
         model_path = hf_hub_download(
             repo_id="josephpetrasek/youtube-video-evaluator",
             filename="model.pth"
         )
+        print(model_path)
         
     model = HybridEvaluator(num_numeric_features=6, num_classes=8, device=device)
     model.load_state_dict(torch.load(model_path, map_location=device))
