@@ -8,7 +8,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN python -m pip install --upgrade pip
-RUN python -m pip install --prefix=/install -r requirements.txt
+RUN python -m pip install -r requirements.txt
 
 # Create model cache and pre-download
 RUN mkdir -p /app/model_cache
