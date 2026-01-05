@@ -105,6 +105,7 @@ class HybridEvaluator(nn.Module):
     ):
         super().__init__()
         self.device = device
+        print("start init model")
 
         # Image Encoder
         if backbone_name == "resnet50":
@@ -117,7 +118,7 @@ class HybridEvaluator(nn.Module):
             self.cnn.fc = nn.Identity()
         else:
             raise ValueError(f"Unsupported backbone: {backbone_name}")
-
+        print("passed image encoder")
         # Title Encoder
         self.title_encoder = DebertaTitleEncoder()
         print("title encoder passed")
