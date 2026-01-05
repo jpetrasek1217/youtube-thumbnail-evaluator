@@ -13,6 +13,7 @@ class DebertaTitleEncoder(nn.Module):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.encoder = AutoModel.from_pretrained(model_name)
+        print("tokenizer and encoder loaded inside deberta")
         hidden_size = self.encoder.config.hidden_size
 
         if freeze_encoder:
@@ -119,10 +120,12 @@ class HybridEvaluator(nn.Module):
 
         # Title Encoder
         self.title_encoder = DebertaTitleEncoder()
+        print("title encoder passed")
         title_feat_dim = 256
 
         # Metadata Encoders
         self.video_encoder = VideoMetadataEncoder(embed_dim=32)
+        print("video encoder passed")
 
         # Numeric / continuous features (optional)
         self.numeric_net = nn.Sequential(
@@ -153,6 +156,7 @@ class HybridEvaluator(nn.Module):
 
             nn.Linear(256, num_classes),
         )
+        print("the rest of them passed")
 
     def forward(
         self,
