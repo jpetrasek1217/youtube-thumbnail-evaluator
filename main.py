@@ -10,7 +10,7 @@ from torchvision import transforms
 from PIL import Image
 import io
 import numpy as np
-from model import load_model, preprocess_input, predict
+from model import load_model, predict
 import os
 from contextlib import asynccontextmanager
 
