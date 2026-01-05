@@ -22,6 +22,9 @@ FROM python:3.12.12-slim
 
 WORKDIR /app
 
+# Copy the model cache from the builder stage into the final image
+COPY --from=builder /app/model_cache /app/model_cache
+
 # System deps for Pillow / PyTorch
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \

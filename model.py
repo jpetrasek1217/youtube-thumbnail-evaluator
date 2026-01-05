@@ -7,10 +7,7 @@ from hybrid_nn import HybridEvaluator
 
 def load_model(model_path: str = "/app/model_cache/model.pth") -> nn.Module:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # If model_path is None, fallback to local cache
-    model_path = model_path or "/app/model_cache/model.pth"
-    
+        
     model = HybridEvaluator(num_numeric_features=6, num_classes=8, device=device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
