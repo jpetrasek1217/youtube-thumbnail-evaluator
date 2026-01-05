@@ -1,17 +1,14 @@
+# YES I know this is BAD programming practice, but it is functional. I ran out of time to follow best practices, but I plan on refactoring in v2.
+
 import uvicorn
 import base64
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
-from typing import Optional
-import torch
-import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
 import io
-import numpy as np
 from model import load_model, predict
-import os
 from contextlib import asynccontextmanager
 
 model = None
