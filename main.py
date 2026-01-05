@@ -31,7 +31,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://jpetrasek1217.github.io"  # Add your GitHub Pages URL
+        "https://thumbnailevaluatornextvercel.vercel.app/"
     ],
     allow_credentials=True,
     allow_methods=["*"],
