@@ -9,3 +9,4 @@ huggingface-hub==0.36.0
 python-multipart==0.0.21
 scikit-learn==1.7.2
 protobuf==6.33.2
+sentencepiece==0.2.1
