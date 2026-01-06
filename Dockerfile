@@ -23,11 +23,6 @@ RUN python -m pip install --upgrade pip && \
       --index-url https://download.pytorch.org/whl/cpu && \
     python -m pip install -r requirements.txt
 
-# Pre-download model
-RUN mkdir -p /model_cache && \
-    python -c "from huggingface_hub import hf_hub_download; \
-    hf_hub_download('josephpetrasek/youtube-video-evaluator','model.pth')"
-
 # -------- Runtime --------
 FROM python:3.12-slim
 
