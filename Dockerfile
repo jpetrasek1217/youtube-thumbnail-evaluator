@@ -3,7 +3,6 @@ FROM python:3.12-slim AS builder
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    HF_HOME=/model_cache
 
 WORKDIR /app
 
@@ -28,7 +27,6 @@ FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    HF_HOME=/model_cache
 
 WORKDIR /app
 
@@ -40,7 +38,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy only what we need
 COPY --from=builder /usr/local /usr/local
-COPY --from=builder /model_cache /model_cache
 COPY . .
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
