@@ -14,6 +14,7 @@ def load_model() -> nn.Module:
         repo_id="josephpetrasek/youtube-video-evaluator",
         filename="model.pth"
     )
+    print("model.pth is downloaded at the link", model_path)
     model = HybridEvaluator(num_numeric_features=6, num_classes=8, device=device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)

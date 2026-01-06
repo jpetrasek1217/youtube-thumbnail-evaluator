@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI):
     # Shutdown logic if needed
 
 app = FastAPI(title="YouTube CTR Predictor", lifespan=lifespan)
+print("starting app")
 
 # origins = [ # I tried using this list but it never worked consistently
 #     "http://localhost:3000",
