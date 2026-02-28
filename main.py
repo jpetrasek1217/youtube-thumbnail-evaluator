@@ -1,5 +1,3 @@
-# YES I know this is BAD programming practice, but it is functional. I ran out of time to follow best practices, but I plan on refactoring in v2.
-
 import uvicorn
 import base64
 from fastapi import FastAPI, File, UploadFile, HTTPException
